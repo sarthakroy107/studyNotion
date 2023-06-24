@@ -17,7 +17,10 @@ require("dotenv").config();
 const PORT = process.env.PORT || 6969
 
 app.use(express.json());
-
+app.use(fileUpload({
+    useTempFiles : true,
+    tempFileDir : '/tmp/'
+}));
 db.connect();
 
 //cloudinary connection

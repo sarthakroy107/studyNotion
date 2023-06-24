@@ -5,9 +5,10 @@ exports.createCategory = async (req, res) => {
 
     try {
         //fetch details
-        const {name} = req.body;
+        const {name, description} = req.body;
         //check if Category alreay exists
-        const findCategory = await Category.findById(name);
+
+        const findCategory = await Category.findOne({name: name});
         if(findCategory) {
             return res.status(401).json({
                 success: false,
@@ -16,7 +17,7 @@ exports.createCategory = async (req, res) => {
         }
         //create entry to db
         const newCategory = await Category.create({
-            name
+            name, description
         });
         console.log(newCategory);
         res.status(200).json({
@@ -31,7 +32,6 @@ exports.createCategory = async (req, res) => {
         })
     }
 }
-
 
 exports.categoryPageDetails = async (req, res) => {
     try {

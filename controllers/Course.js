@@ -81,7 +81,6 @@ exports.createCourse = async (req, res) => {
 }
 
 //get all courses handler function
-
 exports.showAllCourrses = async (req, res) => {
     try {
         const allCourses = Course.findById({});

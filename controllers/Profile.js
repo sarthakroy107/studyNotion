@@ -2,20 +2,22 @@ const Course = require("../models/Course");
 const Profile = require("../models/Profile");
 const User  = require("../models/User");
 const schedule = require('node-schedule');
-const cloudinary = require("cloudinary").v2;
+const cloudinary = require('cloudinary').v2;
+
 exports.createProfile = async (req, res) => {
     try {
         //fetch data
-        const {dateOfBirth = "", about = "", phoneNumber = "",gender = ""} = req.body;
+        const {dateOfBirth, about, mobileNumber,gender} = req.body;
         //fetch userID from cookie(req.user)
-        const userId = req.user.iq;
+        const userId = req.user.id;
         //createProfile
         const newProfile = await Profile.create({
             gender: gender,
             dateOfBirth: dateOfBirth,
-            mobileNumber: phoneNumber,
+            mobileNumber: mobileNumber,
             about: about,
         })
+
         await User.findByIdAndUpdate(userId.id, {
             profile: newProfile._id,
         })
@@ -37,17 +39,22 @@ exports.createProfile = async (req, res) => {
 exports.updateProfile = async (req, res) => {
     try {
         //fetch data
-        const {dateOfBirth = "", about = "", phoneNumber = "",gender = "", profileId} = req.body;
+        const userId = req.user.id;
+        const {dateOfBirth, about, mobileNumber,gender} = req.body;
         //update profile
-        await Profile.findByIdAndUpdate(userId, {
+        const userH = await User.findById(userId);
+
+        const newData = await Profile.findByIdAndUpdate(userH.profile, {
             gender: gender,
             dateOfBirth: dateOfBirth,
-            mobileNumber: phoneNumber,
+            mobileNumber: mobileNumber,
             about: about,
         });
+        console.log(newData);
         return res.status(200).json({
             success: true,
-            message: "Profile updated."
+            message: "Profile updated.",
+            data: newData
         })
     }
     catch(err) {
@@ -86,7 +93,8 @@ exports.deleteProfile = async (req, res) => {
 exports.getAllUserDetails = async (req, res) => {
     try {
         const userId = req.user.id;
-        const allDetails = await User.findOne(userId).populate("profile").exec();
+        console.log("userId: " + userId)
+        const allDetails = await User.findOne({_id: userId}).populate("profile").exec();
         return res.status(200).json({
             success: true,
             message: "All profile details fetched",
@@ -106,7 +114,8 @@ exports.updateDisplayPicture = async (req, res) => {
     try {
         const userId = req.user.id;
         const newPic = req.files.displayPicture;
-        const url = await cloudinary.uploader.upload(newPic, {folder: studyNotion});
+        const url = await cloudinary.uploader.upload(newPic.tempFilePath);
+        console.log("After cloudinary uploader")
         await User.findByIdAndUpdate({_id: userId}, {image: url.secure_url}, {new: true});
         return res.status(200).json({
             success: true,
@@ -143,4 +152,4 @@ exports.getEnrolledCourses = async (req, res) => {
             message: "Courses not found"
         })
     }
-} 
+}

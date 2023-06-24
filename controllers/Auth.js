@@ -28,7 +28,7 @@ exports.generateOTP = async (req, res) => {
             lowerCaseAlphabets:false,
             specialChars:false,
         });
-        console.log(`OTP generated: ${otp}`);
+
         //Check if otp already exists
         let checkOTP = await OTP.findOne({otp: otp});
         while(checkOTP) {
@@ -98,11 +98,10 @@ exports.signup = async (req, res) => {
         //hash the password
         const hashedPassword = await bcrypt.hash(password1, 10);
         //save in db
-        const profileDetails = Profile.create({
+        const profileDetails = await Profile.create({
             gender: "Male",
             dateOfBirth:null,
         });
-
         const createUser = User.create({
             firstname, 
             lastname, 
@@ -155,9 +154,11 @@ exports.login = async (req, res) => {
             email: checkUser.email,
             id: checkUser._id,
             role: checkUser.role,
+            token: "",
         }
         //generate token
-        const token = jwt.sign(payload, process.env.JWT_SECRET, {
+        const token = jwt.sign({ email: checkUser.email, id: checkUser._id, role: checkUser.role }, 
+            process.env.JWT_SECRET, {
             expiresIn: "24h"
         });
         checkUser.token = token;
